@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三国典故 · 马原四十问</title>
+<style>
+  :root{
+    --paper:#f4ecdb; --paper2:#ece0c6; --card:#fbf7ec;
+    --ink:#2b231b; --ink-soft:#63533f; --line:#cdbb96; --line-soft:#e2d5b8;
+    --red:#9c2b25; --red-dark:#7d1f1a; --gold:#a8803a;
+    --ok:#3f6b3a; --ok-bg:#e9f0e1; --ok-line:#9bb98a;
+    --bad:#9c2b25; --bad-bg:#f5e2df; --bad-line:#cfa39d;
+    --kaiti:"KaiTi","楷体","STKaiti","Kaiti SC","Songti SC","SimSun","宋体",serif;
+    --songti:"SimSun","宋体","Songti SC","STSong",serif;
+    --hei:"SimHei","黑体","Heiti SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--kaiti);
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%),
+      radial-gradient(circle at 82% 88%, rgba(168,128,58,.10), rgba(168,128,58,0) 46%),
+      repeating-linear-gradient(0deg, rgba(140,110,60,.035) 0 1px, rgba(140,110,60,0) 1px 4px),
+      repeating-linear-gradient(90deg, rgba(140,110,60,.030) 0 1px, rgba(140,110,60,0) 1px 5px),
+      linear-gradient(160deg, var(--paper) 0%, var(--paper2) 100%);
+    background-attachment:fixed;
+    min-height:100vh; padding:22px 14px 60px;
+    font-size:17px; line-height:1.9;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:820px;margin:0 auto;}
+
+  /* 顶部 */
+  header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .seal{
+    flex:0 0 auto;width:56px;height:56px;border:2px solid var(--red);
+    border-radius:6px;color:var(--red);display:flex;align-items:center;justify-content:center;
+    font-family:var(--hei);font-weight:700;font-size:19px;line-height:1.05;letter-spacing:1px;
+    background:rgba(156,43,37,.05);box-shadow:inset 0 0 0 3px rgba(156,43,37,.10);
+  }
+  .head-text h1{margin:0;font-size:23px;letter-spacing:2px;color:var(--ink);}
+  .head-text p{margin:2px 0 0;color:var(--ink-soft);font-size:13.5px;letter-spacing:.5px;}
+
+  /* 进度 */
+  .bar-row{display:flex;align-items:center;gap:12px;margin:0 0 14px;}
+  .counter{font-family:var(--hei);font-size:13.5px;color:var(--red);white-space:nowrap;letter-spacing:1px;}
+  .bar{flex:1;height:8px;border:1px solid var(--line);border-radius:99px;background:rgba(255,255,255,.5);overflow:hidden;}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--red));transition:width .35s ease;}
+
+  /* 卡片（卷轴） */
+  .scroll{
+    position:relative;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:26px 26px 22px;
+    box-shadow:0 10px 26px rgba(80,60,25,.12), inset 0 0 0 1px rgba(255,255,255,.6);
+  }
+  .scroll::before,.scroll::after{
+    content:"";position:absolute;left:16px;right:16px;height:3px;border-radius:2px;
+    background:linear-gradient(90deg,transparent,rgba(168,128,58,.55),transparent);
+  }
+  .scroll::before{top:8px;} .scroll::after{bottom:8px;}
+
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .tag{font-family:var(--hei);font-size:12px;letter-spacing:.5px;padding:2px 10px;border-radius:99px;
+    border:1px solid var(--line);color:var(--ink-soft);background:rgba(255,255,255,.55);}
+  .tag.k{color:var(--red-dark);border-color:var(--red);background:rgba(156,43,37,.06);}
+
+  .stem{font-size:18px;line-height:2.0;}
+  .stem .mark{color:var(--red);font-weight:700;}
+
+  /* 选项 */
+  .opts{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;
+    border:1px solid var(--line-soft);border-radius:8px;background:rgba(255,255,255,.62);
+    padding:11px 14px;cursor:pointer;transition:.16s;user-select:none;
+  }
+  .opt .lab{font-family:var(--hei);font-weight:700;color:var(--red);flex:0 0 1.2em;text-align:center;}
+  .opt .txt{flex:1;}
+  .opt:hover{border-color:var(--gold);background:#fffdf6;transform:translateX(2px);}
+  .opt.locked{cursor:default;transform:none;}
+  .opt.ok{border-color:var(--ok-line);background:var(--ok-bg);}
+  .opt.bad{border-color:var(--bad-line);background:var(--bad-bg);}
+  .opt.ok .lab,.opt.bad .lab{color:inherit;}
+  .opt .mark{font-family:var(--hei);font-size:13px;margin-left:6px;white-space:nowrap;}
+  .opt.ok .mark{color:var(--ok);} .opt.bad .mark{color:var(--bad);}
+
+  /* 解析区 */
+  .reveal{margin-top:18px;display:none;animation:fade .3s ease;}
+  .reveal.show{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .verdict{font-family:var(--hei);font-size:15px;letter-spacing:.5px;margin-bottom:12px;}
+  .verdict .yes{color:var(--ok);} .verdict .no{color:var(--bad);}
+  .block{border-top:1px dashed var(--line);padding:11px 0 3px;}
+  .block:first-of-type{border-top:0;}
+  .block h4{margin:0 0 4px;font-family:var(--hei);font-size:13px;letter-spacing:2px;color:var(--red-dark);}
+  .block h4 span{display:inline-block;border-left:3px solid var(--red);padding-left:7px;}
+  .block p{margin:0;color:var(--ink);font-size:16px;line-height:1.95;}
+  .block p.muted{color:var(--ink-soft);}
+
+  /* 按钮 */
+  .foot{display:flex;justify-content:flex-end;gap:12px;margin-top:20px;}
+  button{
+    font-family:var(--hei);font-size:15px;letter-spacing:1px;cursor:pointer;
+    border-radius:8px;padding:10px 26px;transition:.16s;border:1px solid var(--red);
+  }
+  .btn-main{background:var(--red);color:#fdf6e8;box-shadow:0 3px 0 var(--red-dark);}
+  .btn-main:hover{background:var(--red-dark);}
+  .btn-main:active{transform:translateY(2px);box-shadow:0 1px 0 var(--red-dark);}
+  .btn-main[disabled]{opacity:.35;cursor:not-allowed;box-shadow:none;}
+  .btn-ghost{background:transparent;color:var(--red);}
+  .btn-ghost:hover{background:rgba(156,43,37,.08);}
+
+  /* 结算 */
+  .result{text-align:center;padding:16px 6px 6px;}
+  .result .score{font-family:var(--hei);font-size:52px;color:var(--red);letter-spacing:2px;line-height:1.2;}
+  .result .score small{font-size:20px;color:var(--ink-soft);}
+  .result .rank{margin:8px 0 6px;font-size:20px;letter-spacing:3px;color:var(--gold);}
+  .result .note{color:var(--ink-soft);font-size:15px;}
+  .result .foot{justify-content:center;}
+  .hint{color:var(--ink-soft);font-size:13px;margin-top:14px;text-align:center;letter-spacing:.5px;}
+
+  @media (max-width:560px){
+    body{font-size:16px;padding:16px 10px 48px;}
+    .scroll{padding:20px 16px 16px;}
+    .stem{font-size:17px;}
+    .head-text h1{font-size:19px;}
+    .seal{width:48px;height:48px;font-size:16px;}
+    .result .score{font-size:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="seal">马原<br>闯关</div>
+    <div class="head-text">
+      <h1>三国典故 · 马原四十问</h1>
+      <p>《马克思主义基本原理》2023 版 · 第一章 / 第二章 · 单项选择</p>
+    </div>
+  </header>
+
+  <div class="bar-row">
+    <div class="counter" id="counter">第 1 / 40 题</div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <main id="stage"></main>
+
+  <p class="hint" id="hint">每答完一题立即判分，并给出解析、故事背景与人物简介。</p>
+</div>
+
+<script id="bankData" type="application/json">
+[
+  {"id": 1, "chapter": "第一章第一节", "point": "意识的作用（能动作用）", "stem": "曹操行军途中缺水，将士口渴难耐。曹操遥指前方道：“前面有大梅林。”士卒闻之，口中生津，一时缓解了口渴。这一现象最能说明（　）。", "options": {"A": "意识能够调控人的行为和生理活动", "B": "意识可以直接创造物质，真的解决了缺水问题", "C": "意识是主观自生的，与客观存在无关", "D": "物质决定意识，意识对物质没有反作用"}, "answer": "A", "analysis": "“听说有梅”这一观念引起唾液分泌，正是意识能动作用的体现——意识能够调控人的行为和生理活动。B 夸大意识作用，是唯心主义；C 否认意识的客观来源；D 否认意识的能动作用。", "story": "“望梅止渴”见《世说新语·假谲》：曹操行军失道缺水，乃扬言“前有大梅林”，士卒闻之口出水，是心理暗示暂缓困境的例子。", "people": "曹操（155—220），字孟德，魏国奠基者，政治家、军事家、文学家。"},
+  {"id": 2, "chapter": "第一章第一节", "point": "主观能动性与客观规律性的统一", "stem": "《三国演义》写赤壁之战前，诸葛亮“借”来东风，助周瑜火烧曹军。若从哲学上看，所谓“借东风”的实质是（　）。", "options": {"A": "主观能动性可以创造和改变客观规律", "B": "在认识和尊重客观规律的基础上发挥主观能动性", "C": "凭借法术和意志直接改变自然", "D": "人的活动可以不受客观规律制约"}, "answer": "B", "analysis": "风向变化是气候规律使然，人不能“借”来，只能预见和利用。B 正确：发挥主观能动性必须以尊重客观规律为前提。A、C 夸大主观力量，是唯心主义；D 否认规律的客观性。", "story": "赤壁之战（208 年）中周瑜欲以火攻破曹，苦于冬季少东南风。《演义》虚构“借东风”一节，正史无载；冬春之交长江中游偶有东南风，属气候现象。", "people": "诸葛亮（181—234），字孔明，蜀汉丞相；周瑜（175—210），字公瑾，东吴大都督。"},
+  {"id": 3, "chapter": "第一章第一节", "point": "意识的能动作用（指导实践改造世界）", "stem": "诸葛亮北伐时为解决秦岭运粮难题，创制“木牛流马”，把设想变成了能实际使用的运输工具。这一过程最能体现（　）。", "options": {"A": "意识本身就是物质，可以脱离实践独立存在", "B": "意识活动具有目的性和计划性，并能指导实践把观念的东西变成现实", "C": "只要有了想法，就一定能改造世界", "D": "客观事物是由人的意识决定的"}, "answer": "B", "analysis": "先有“解决运粮”的目的与设计（目的性、计划性），再通过制作和改进的实践，把观念的东西转化为现实的物质产品，体现意识的能动作用。A 混淆物质与意识；C 无视实践与条件的制约；D 是唯心主义。", "story": "“木牛流马”见《三国志·诸葛亮传》及《演义》，是蜀汉为翻越秦岭运送军粮而设计的运输器械，具体形制后世已不可考。", "people": "诸葛亮（181—234），蜀汉丞相，长于治国，亦精器械、阵法。"},
+  {"id": 4, "chapter": "第一章第一节", "point": "运动是物质的根本属性 / 时间空间是运动着的物质的存在形式", "stem": "刘备寄居荆州，久不征战，一日入厕见大腿内侧赘肉复生，慨然流涕，叹“日月若驰，功业不建”。“日月若驰”一语蕴含的哲理是（　）。", "options": {"A": "运动是物质的根本属性，时间具有一维性和不可逆性", "B": "时间是主观感受，可以随意拉长或缩短", "C": "静止是绝对的，运动是相对的", "D": "空间是物质运动的唯一形式"}, "answer": "A", "analysis": "时光流逝不居，体现物质处于永恒运动之中；时间是物质运动的存在形式，且具有一维性、不可逆性。B 把时间主观化；C 颠倒了运动与绝对静止的关系；D 把空间说成唯一形式，错误。", "story": "事见《三国志·先主传》裴松之注引《九州春秋》：刘备在荆州数年，“髀里肉生”，因功业未成而泣。", "people": "刘备（161—223），字玄德，蜀汉开国皇帝。"},
+  {"id": 5, "chapter": "第一章第一节", "point": "尊重客观规律是正确发挥主观能动性的前提", "stem": "关羽被害后，刘备不顾国力与地势之不利，执意东征，沿江连营七百里，终为陆逊火攻大败。从哲学上看，刘备之败主要在于（　）。", "options": {"A": "主观能动性发挥得还不够充分", "B": "战争结果完全由偶然因素决定", "C": "客观规律是由人主观创造的", "D": "脱离了客观实际、违背了客观规律"}, "answer": "D", "analysis": "刘备以复仇的愿望代替对敌我态势的冷静分析，主观愿望脱离客观条件，故败。这说明主观能动性必须以尊重客观规律、从实际出发为前提。A 把失败归因于“不够努力”，方向相反；B、C 本身错误。", "story": "夷陵之战（222 年）：刘备为关羽报仇东征孙吴，连营数百里，吴将陆逊以火攻破之，蜀军大败，刘备退守白帝城。", "people": "刘备（161—223）；陆逊（183—245），字伯言，东吴名将。"},
+  {"id": 6, "chapter": "第一章第一节", "point": "世界的物质统一性 / 反对唯心主义", "stem": "《三国演义》中有诸葛亮五丈原“禳星续命”、关羽死后“显圣”等情节。若把这些当作真实发生的事，其根本错误在于违背了（　）。", "options": {"A": "意识具有能动作用的原理", "B": "矛盾双方相互转化的原理", "C": "世界的物质统一性原理", "D": "实践是认识的基础的原理"}, "answer": "C", "analysis": "“续命”“显圣”无异于承认存在脱离物质、超越物质的灵魂或神力，属于唯心主义，与“世界统一于物质”的唯物主义基本原理相抵牾。故选 C。", "story": "“禳星续命”见《演义》第一百零三回，写诸葛亮于五丈原点灯祈寿；“关羽显圣”见第七十七回。二者皆为文学虚构，非史实。", "people": "诸葛亮（181—234）；关羽（？—220），字云长，蜀汉名将。"},
+  {"id": 7, "chapter": "第一章第二节", "point": "联系的条件性", "stem": "赤壁之战前，周瑜叹道“万事俱备，只欠东风”。这一说法所含的辩证法道理是（　）。", "options": {"A": "联系是普遍的，同时也是无条件的", "B": "整体的功能总是等于各部分功能之和", "C": "事物的存在和发展依赖一定条件，一切以时间、地点、条件为转移", "D": "部分可以脱离整体而独立存在"}, "answer": "C", "analysis": "东风即火攻成败所依赖的具体条件；条件不具备，计划便无法实现，说明联系具有条件性，一切以时间、地点、条件为转移。A 错在“无条件”；B、D 与题意及原理均不符。", "story": "赤壁之战中，火攻需东南风助势，而冬季长江多西北风，故有“只欠东风”之叹。“借东风”为《演义》所增饰。", "people": "周瑜（175—210），东吴大都督；诸葛亮（181—234）。"},
+  {"id": 8, "chapter": "第一章第二节", "point": "原因与结果", "stem": "曹操迎汉献帝至许都，“挟天子以令诸侯”，由此在群雄中赢得政治主动，为统一北方奠定基础。这体现的辩证法范畴是（　）。", "options": {"A": "现象与本质", "B": "原因与结果", "C": "必然与偶然", "D": "可能与现实"}, "answer": "B", "analysis": "“迎天子”是原因，“取得政治主动、进而统一北方”是结果，二者构成引起与被引起的因果关系。A、C、D 三对范畴与题意不符。", "story": "建安元年（196 年），曹操迎汉献帝迁都许县，取得“挟天子以令诸侯”的政治优势，成为其崛起的关键一步。", "people": "曹操（155—220）；汉献帝刘协（181—234）。"},
+  {"id": 9, "chapter": "第一章第二节", "point": "发展的实质（新事物代替旧事物）", "stem": "三国鼎立数十年后，蜀汉、孙吴相继而亡，司马氏代魏而立，最终由西晋完成统一。用唯物辩证法看，这一过程表明（　）。", "options": {"A": "旧事物总是比新事物更有生命力", "B": "事物的发展只是数量的增减，没有质变", "C": "历史发展可以由某一个人的意志任意决定", "D": "发展的实质是新事物的产生和旧事物的灭亡"}, "answer": "D", "analysis": "分裂割据的旧格局被统一的新格局取代，说明发展的实质是新事物产生、旧事物灭亡，是前进的运动。B 否认质变；C 是唯心史观；A 与“新事物必然战胜旧事物”相悖。", "story": "263 年蜀汉亡，265 年司马炎代魏建晋（西晋），280 年西晋灭吴，中国重归统一。", "people": "司马炎（236—290），晋武帝；司马懿、司马昭为西晋奠基的关键人物。"},
+  {"id": 10, "chapter": "第一章第二节", "point": "矛盾双方在一定条件下相互转化", "stem": "官渡之战中，兵力弱小的曹操采纳许攸之计，奇袭乌巢烧毁袁绍粮草，一举扭转战局，以弱胜强。这体现了（　）。", "options": {"A": "矛盾双方的转化是任意的，不需要条件", "B": "矛盾双方在一定条件下可以相互转化", "C": "弱者注定能够战胜强者", "D": "矛盾的对立性可以完全取消"}, "answer": "B", "analysis": "“焚毁粮草”正是转化得以发生的条件：粮草一失，袁绍之“强”化为“弱”，曹操由“弱”转“强”。故选 B。A 错在“不需要条件”；C 是绝对化；D 否认矛盾双方的斗争性。", "story": "官渡之战（200 年）：曹操以劣势兵力对阵袁绍，采纳降将许攸之计夜袭乌巢，焚其屯粮，袁军大溃，曹操遂定北方。", "people": "曹操（155—220）；袁绍（？—202），字本初；许攸，原为袁绍谋士，后投曹操。"},
+  {"id": 11, "chapter": "第一章第二节", "point": "矛盾的同一性与斗争性及其相互联结", "stem": "赤壁之战时孙刘联合抗曹，战后又因荆州归属频频交恶，直至刀兵相见。这种“既联合又争夺”的关系说明（　）。", "options": {"A": "有同一性就排斥斗争性", "B": "同一性就是斗争性，二者没有区别", "C": "矛盾的同一性和斗争性相互联结、不可分割", "D": "矛盾双方只有斗争，没有同一"}, "answer": "C", "analysis": "联合（同一性）与争夺（斗争性）同时存在、互为前提，正是矛盾同一性和斗争性相互联结的体现。B 混淆二者；A、D 割裂或否认同一性与斗争性，均错。", "story": "208 年孙刘联军于赤壁大败曹操；战后因荆州归属，孙权、刘备由盟转敌，关羽失荆州、夷陵之战皆由此而起。", "people": "孙权（182—252），字仲谋，东吴开国皇帝；刘备（161—223）。"},
+  {"id": 12, "chapter": "第一章第二节", "point": "矛盾的特殊性（具体问题具体分析）", "stem": "南中叛乱，诸葛亮对孟获“七擒七纵”，以攻心代替单纯的武力镇压，终使其心服。这一做法体现的方法论是（　）。", "options": {"A": "承认了矛盾的普遍性就等于解决了矛盾", "B": "一切矛盾都只能用武力解决", "C": "矛盾的特殊性寓于普遍性之中，故无须区别对待", "D": "具体问题具体分析，用不同方法解决不同性质的矛盾"}, "answer": "D", "analysis": "南中问题的特殊性在于“攻心”胜于“攻城”，诸葛亮据此采取“擒纵并用”之策，正是具体分析矛盾特殊性、对症下药。B 绝对化；C 恰好说反；A 以普遍性代替具体分析，错误。", "story": "“七擒孟获”见《三国志》裴松之注引《汉晋春秋》：诸葛亮对南中首领孟获屡擒屡纵，使其心服，南中遂定。", "people": "诸葛亮（181—234）；孟获，南中地区少数民族首领。"},
+  {"id": 13, "chapter": "第一章第二节", "point": "质量互变规律", "stem": "司马懿在曹魏后期长期称病韬晦、暗中积蓄力量，一旦时机到来便发动高平陵之变，夺取朝政大权。这一过程所含的规律是（　）。", "options": {"A": "质变不需要量变的准备即可发生", "B": "量变积累到一定程度必然引起质变", "C": "量变就是质变，二者没有区别", "D": "事物只有量变，没有质变"}, "answer": "B", "analysis": "长期韬晦、培植势力是量的积累，时机成熟后一举夺权是质的飞跃，体现量变到质变的规律。A 否认量变是质变的前提；C、D 混淆或否认二者的区别。", "story": "高平陵之变（249 年）：司马懿趁曹爽陪同皇帝出城祭扫高平陵之机发动政变，诛曹爽，从此司马氏独揽曹魏大权。", "people": "司马懿（179—251），字仲达，曹魏重臣，西晋奠基者。"},
+  {"id": 14, "chapter": "第一章第二节", "point": "否定之否定规律（前进性与曲折性的统一）", "stem": "《三国演义》开篇说“话说天下大势，分久必合，合久必分”。用唯物辩证法衡量，这句话的局限在于（　）。", "options": {"A": "它把社会发展看成一个封闭的圆圈，陷入循环论，未揭示前进性与曲折性的统一", "B": "它承认了事物的发展变化", "C": "它否定了历史发展有任何规律", "D": "它指出了矛盾是事物发展的动力"}, "answer": "A", "analysis": "否定之否定不是回到原点的循环，而是螺旋式上升、前进性与曲折性相统一。“分久必合、合久必分”把历史看成简单往复，故 A 正确。B、D 是句子的合理之处而非“局限”；C 与句意不符。", "story": "此语出自《三国演义》第一回开篇，是一种文学化的历史概括，并非严格的哲学命题。", "people": "罗贯中（约 1330—约 1400），元末明初小说家，《三国演义》作者。"},
+  {"id": 15, "chapter": "第一章第二节", "point": "现象与本质（透过现象看本质）", "stem": "《演义》写街亭失守后，诸葛亮以空城抚琴退司马懿之兵。司马懿只见“城门大开、孔明端坐”的表象，未究其实，遂引兵而退。这一情节说明（　）。", "options": {"A": "现象表现本质，必须透过现象把握本质，防止被假象迷惑", "B": "现象就是本质，看到现象即认识了本质", "C": "假象不是对本质的歪曲表现，与本质无关", "D": "人的认识不会产生错觉与失误"}, "answer": "A", "analysis": "司马懿被“空城端坐”的假象所迷惑，未能透过现象看本质，正是 A 的注脚。B 把现象等同于本质；C 否认假象也是本质（歪曲）的表现；D 绝对化。", "story": "“空城计”是《三国演义》第九十五回的虚构情节，正史无载，街亭之败后诸葛亮并未施行此计。", "people": "诸葛亮（181—234）；司马懿（179—251）。"},
+  {"id": 16, "chapter": "第一章第二节", "point": "必然性与偶然性的辩证统一", "stem": "关羽北伐、水淹七军，威震华夏，却因后方空虚、糜芳士仁叛迎孙权而失荆州。用辩证法看，关羽之败说明（　）。", "options": {"A": "偶然性可以脱离必然性而单独起作用", "B": "偶然性背后隐藏着必然性，偶然是必然的表现和补充", "C": "历史事件纯粹由偶然的意外决定", "D": "必然是偶然的简单相加"}, "answer": "B", "analysis": "糜芳、士仁叛变看似偶然，但关羽轻敌骄矜、与同僚不和、后方空虚，已含导致失败的必然趋势，偶然的叛变正是这一必然的体现和补充。A、C 割裂二者；D 把必然说成偶然的相加，错误。", "story": "219 年关羽发动襄樊之战，水淹七军，兵锋甚盛，但为吕蒙、陆逊偷袭后方，糜芳、士仁不战而降，关羽败走麦城被杀，荆州失陷。", "people": "关羽（？—220）；糜芳、士仁，原蜀汉将领，后降吴。"},
+  {"id": 17, "chapter": "第一章第二节", "point": "内因与外因的辩证关系", "stem": "蜀汉后期，黄皓专权、人才凋零、民力疲敝，虽有山川之险，终为魏所灭。用辩证法分析，蜀汉之亡的根据在于（　）。", "options": {"A": "魏国的进攻这一外部条件", "B": "蜀汉内部的矛盾这一内因", "C": "偶然的天时变化", "D": "山川等地利条件"}, "answer": "B", "analysis": "内因是事物变化的根据，外因是变化的条件，外因通过内因起作用。魏国伐蜀是外因，蜀汉内部腐败、人心离散才是其灭亡的根据。故选 B。", "story": "诸葛亮、蒋琬、费祎相继去世后，蜀汉宦官黄皓干政，姜维避祸屯田，人才凋敝。263 年魏军伐蜀，邓艾偷渡阴平，刘禅出降。", "people": "刘禅（207—271），蜀汉后主；黄皓，蜀汉宦官。"},
+  {"id": 18, "chapter": "第一章第二节", "point": "可能与现实（现实的可能性与抽象的可能性）", "stem": "蜀汉已亡、成都已降，姜维仍诈降钟会、密谋复国，终与钟会同死于乱军。从“可能与现实”的角度看，姜维所谋属于（　）。", "options": {"A": "抽象的可能性，因缺乏必要的客观条件而无法转化为现实", "B": "现实的可能性，只待时机成熟", "C": "已经完全变成现实的方案", "D": "与条件毫无关系的纯粹空想，不具备任何可能性"}, "answer": "A", "analysis": "姜维的方案看似合理，却缺少军队、人心、魏将支持等必要条件，故只是抽象的可能性；现实的可能性才有充分根据、在当下可以实现。故选 A。B 高估条件；C 与失败的事实不符；D 走另一极端——抽象的可能仍是可能，只是不能实现。", "story": "263 年蜀汉灭亡后，姜维诈降魏将钟会，劝其据蜀反魏，欲乘乱复国，事败，与钟会同被杀。见《三国志·姜维传》。", "people": "姜维（202—264），字伯约，蜀汉大将军；钟会（225—264），曹魏将领。"},
+  {"id": 19, "chapter": "第一章第三节", "point": "辩证思维方法·分析与综合", "stem": "刘备三顾茅庐，诸葛亮在“隆中对”中剖析曹操“不可与争锋”、孙权“可为援而不可图”，进而提出跨有荆益、联孙抗曹的全局方略。这一思维过程主要体现了（　）。", "options": {"A": "只分析不综合，把整体割裂为碎片", "B": "在分析的基础上进行综合，把握事物的整体联系", "C": "用主观想象代替客观分析", "D": "归纳与演绎的完全割裂"}, "answer": "B", "analysis": "先分别剖析各方（分析），再据此提出整体战略（综合），是分析与综合辩证结合的体现。A 只见分析不见综合；C 是主观主义；D 与题意不符。", "story": "“隆中对”是刘备三访诸葛亮时，诸葛亮对天下形势作出的战略分析，见于《三国志·诸葛亮传》，成为蜀汉立国方针。", "people": "诸葛亮（181—234）；刘备（161—223）。"},
+  {"id": 20, "chapter": "第一章第三节", "point": "辩证思维方法·归纳与演绎", "stem": "官渡之战前，郭嘉从“道、义、治、度、谋、德、仁、明、文、武”十个方面比较曹、袁长短，得出曹操必胜的判断。这种由多个具体方面概括出一般结论的方法，属于（　）。", "options": {"A": "归纳", "B": "演绎", "C": "分析", "D": "抽象"}, "answer": "A", "analysis": "由一个个具体方面（个别）概括出“曹操必胜”的一般结论，是归纳；演绎与之相反，是从一般到个别。故选 A。", "story": "“十胜十败论”见《三国志·郭嘉传》裴松之注引《傅子》，郭嘉以此坚定曹操与袁绍决战之心。", "people": "郭嘉（170—207），字奉孝，曹操谋士，被称“才策谋略，世之奇士”。"},
+  {"id": 21, "chapter": "第一章第三节", "point": "辩证思维方法·逻辑与历史的统一", "stem": "史家陈寿据史实撰写《三国志》，而《三国演义》为塑造人物多有增饰（如“借东风”“空城计”）。研究历史时，我们应当（　）。", "options": {"A": "以文学想象的逻辑代替历史本身的逻辑", "B": "坚持逻辑与历史相统一，让理论逻辑符合历史实际进程", "C": "只凭主观好恶选择史料", "D": "认为历史没有规律，何种说法都可成立"}, "answer": "B", "analysis": "辩证思维要求逻辑与历史相统一，思维的逻辑应反映历史发展的实际进程，而不能以文学虚构的逻辑冒充历史。故选 B。A、C 主观任意；D 是历史虚无主义。", "story": "《三国志》为西晋陈寿所撰纪传体史书；《三国演义》为元末明初罗贯中所著历史小说，向有“七分实事、三分虚构”之说。", "people": "陈寿（233—297），字承祚，西晋史学家；罗贯中（约 1330—约 1400）。"},
+  {"id": 22, "chapter": "第二章第一节", "point": "实践是认识的来源", "stem": "刘备三顾茅庐，当面请教，才得到诸葛亮“隆中对”的整套战略认识。这最能说明（　）。", "options": {"A": "书本知识是认识的唯一来源", "B": "认识是人头脑中固有的", "C": "认识可以脱离实践凭空产生", "D": "认识来源于实践，实践是认识的来源"}, "answer": "D", "analysis": "刘备的求贤与面谈是实践活动，正是在这一过程中获得了战略认识，说明实践是认识的来源。B、C 是唯心论先验论；A 把“来源”误当作书本——书本是认识的传递，而非来源。", "story": "刘备“三顾臣于草庐之中”，诸葛亮遂献“隆中对”。见《三国志·诸葛亮传》及《出师表》。", "people": "刘备（161—223）；诸葛亮（181—234）。"},
+  {"id": 23, "chapter": "第二章第一节", "point": "实践是认识发展的动力", "stem": "诸葛亮在与曹魏、孙吴的长期交锋中，不断改进阵法与器械（如八阵图、连弩），其军事认识也随之深化。这说明（　）。", "options": {"A": "认识的发展与人的实践活动无关", "B": "认识一旦形成便不再变化", "C": "实践不断提出新问题、提供新经验，推动认识向前发展", "D": "认识的发展只靠天才的灵感"}, "answer": "C", "analysis": "战争实践不断暴露新问题、积累新经验，促使诸葛亮改进战法、深化认识，体现实践是认识发展的动力。A、B、D 或否认发展，或割裂实践与认识，或陷入天才论，均错。", "story": "诸葛亮治军注重阵法与器械：“八阵图”见于记载并有遗迹传说，“损益连弩”亦为蜀汉所重。", "people": "诸葛亮（181—234）。"},
+  {"id": 24, "chapter": "第二章第一节", "point": "认识的第一次飞跃（由感性认识上升到理性认识）", "stem": "周瑜先亲临前敌，观察曹军船阵相连、风向水势（感性材料），继而综合判断，定下火攻之计（理性结论）。这一过程属于（　）。", "options": {"A": "认识过程的倒退", "B": "由理性认识回到实践的第二次飞跃", "C": "由感性认识上升到理性认识的第一次飞跃", "D": "脱离实际的主观臆断"}, "answer": "C", "analysis": "先取得关于船阵、风向、水势的感性材料，再经思维加工形成“火攻可行”的理性判断，正是认识运动的第一次飞跃。B 与“回到实践”不符；A、D 错误。", "story": "周瑜、黄盖利用曹操战船首尾相连之弊，行火攻破曹，见《三国志·周瑜传》。", "people": "周瑜（175—210）；黄盖，东吴将领。"},
+  {"id": 25, "chapter": "第二章第一节", "point": "认识的第二次飞跃（理性认识回到实践）", "stem": "周瑜既已定下火攻之策，又安排黄盖诈降、诸将放火接应，把方案付诸实战并取得成功。这一环节属于（　）。", "options": {"A": "由感性认识上升到理性认识", "B": "与实践无关的纯粹思维活动", "C": "认识活动的终结", "D": "由理性认识回到实践，是认识过程中更重要的飞跃"}, "answer": "D", "analysis": "把已形成的理性认识通过部署、行动转化为现实结果，是第二次飞跃；它比第一次飞跃更重要，因为认识世界的目的是改造世界。A 与题意相反；B、C 错误。", "story": "《演义》写周瑜用黄盖诈降、庞统献连环等连环安排；正史载黄盖献诈降火攻之策，赤壁之役据此而定。", "people": "周瑜（175—210）；黄盖；庞统（179—214），字士元，与诸葛亮齐名。"},
+  {"id": 26, "chapter": "第二章第一节", "point": "认识运动的反复性和无限性", "stem": "诸葛亮数次北伐，屡因粮尽或形势变化而退兵，又在一次次实战中修正对魏的判断。这说明（　）。", "options": {"A": "认识可以一次完成、一劳永逸", "B": "认识具有反复性和无限性，是一个不断深化的过程", "C": "反复失败说明认识毫无价值", "D": "认识过程的终结就是真理的穷尽"}, "answer": "B", "analysis": "受客观条件与主观条件限制，对魏蜀形势的认识需要经多次反复才能逐步深化，体现认识的反复性和无限性。A、D 否认认识的辩证发展；C 以成败否定认识价值，错误。", "story": "诸葛亮曾多次北伐（《演义》称“六出祁山”），多因粮运困难等退军，事见《三国志·诸葛亮传》。", "people": "诸葛亮（181—234）。"},
+  {"id": 27, "chapter": "第二章第一节", "point": "实践的基本形式（物质生产实践是最基本的形式）", "stem": "曹操在许下推行屯田，招募流民、开垦荒地，数年之间“所在积粟，仓廪皆满”。从实践的形式看，这里最主要的是（　）。", "options": {"A": "纯粹的精神活动", "B": "科学文化实践", "C": "社会政治实践", "D": "物质生产实践，它是最基本的实践活动"}, "answer": "D", "analysis": "屯田解决的是粮食生产这一根本问题，属物质生产实践，是人类社会存在和发展的基础，因而是最基本的实践形式。B、C 不是此项的主要性质；A 根本不属于实践。", "story": "建安元年（196 年），曹操采纳枣祗、韩浩建议，在许下实行屯田，“募民屯田许下，得谷百万斛”，为其统一北方奠定物质基础。", "people": "曹操（155—220）；枣祗，曹操部下，首倡屯田。"},
+  {"id": 28, "chapter": "第二章第一节", "point": "实践的社会历史性", "stem": "诸葛亮改进的连弩虽“一弩十矢俱发”，却仍受当时冶炼、工艺等水平限制，不可能造出超越时代的武器。这体现了实践的（　）。", "options": {"A": "社会历史性", "B": "直接现实性", "C": "主观随意性", "D": "纯客观性而与人无关"}, "answer": "A", "analysis": "实践受特定社会历史条件的制约，在不同历史阶段有不同内容与水平，故 A 正确。B 指实践能把观念变为现实；C 与实践的客观物质性相悖；D 割裂了实践中人的作用。", "story": "“损益连弩”（连弩）为诸葛亮所改进，“一弩十矢俱发”，见《三国志·诸葛亮传》裴松之注引《魏氏春秋》。", "people": "诸葛亮（181—234）。"},
+  {"id": 29, "chapter": "第二章第二节", "point": "真理的客观性（真理面前人人平等）", "stem": "赤壁之战前，张昭等文臣多主降曹，仅鲁肃、周瑜等少数人主战，事后证明主战之见符合实际。这启示我们（　）。", "options": {"A": "真理掌握在多数人手里，人多者即为真理", "B": "只有少数人的意见才可能是真理", "C": "真理是客观的，正确与否不取决于赞成者人数的多少", "D": "真理由说话者权势的高低决定"}, "answer": "C", "analysis": "判断一种认识是否正确，唯一依据是它是否与客观实际相符合，而非赞成的人数或说话者的地位。C 正确。A、D 以人多、权势定真伪；B 是另一种绝对化。", "story": "赤壁战前，孙权集团内部张昭等主张迎降，鲁肃、周瑜力主抵抗，孙权决意联刘抗曹，终获大胜。见《三国志》相关传记。", "people": "张昭（156—236），东吴重臣；周瑜（175—210）；鲁肃（172—217）。"},
+  {"id": 30, "chapter": "第二章第二节", "point": "真理的绝对性与相对性的统一", "stem": "《演义》把诸葛亮写成能“掐算”天机的神人。若从认识论看，他对天象、气候的把握在当时条件下既有可靠内容，又受时代局限。这说明真理是（　）。", "options": {"A": "绝对性与相对性的统一", "B": "纯粹相对的，没有客观内容", "C": "纯粹绝对的，已经穷尽一切", "D": "主观的，取决于是否合人心意"}, "answer": "A", "analysis": "一方面它包含与客观相符合的内容（绝对性），另一方面又受历史条件制约、有待扩展（相对性），故真理是绝对性与相对性的统一。B、C 各执一端；D 否认真理的客观性。", "story": "《演义》中诸葛亮常以观星、借风等情节被神化；这些是文学夸张，其真实知识来自对天文、地理的学习与实践。", "people": "诸葛亮（181—234）。"},
+  {"id": 31, "chapter": "第二章第二节", "point": "真理与谬误的辩证关系", "stem": "官渡之战前，田丰劝袁绍以持久战消耗曹操，袁绍斥其“惑众”而囚之；后袁绍果败，遂杀田丰。这一事例说明（　）。", "options": {"A": "凡被当权者否定的意见必是谬误", "B": "真理与谬误没有原则界限，可以随意混淆", "C": "真理与谬误相比较而存在、相斗争而发展，在一定条件下可以相互转化", "D": "真理一经产生就永远不会被当作谬误"}, "answer": "C", "analysis": "田丰的正确之见一度被视为“谬误”而遭囚杀，事后方显其为真，正说明真理与谬误相比较而存在、相斗争而发展，并在一定条件下相互转化。B 抹杀二者界限；A 以权势定真伪；D 绝对化。", "story": "田丰谏袁绍不宜速战、宜以持久制曹，袁绍不听且囚之；官渡兵败后，袁绍羞见田丰，遂杀之。见《三国志·袁绍传》。", "people": "田丰（？—200），字元皓，袁绍谋士；袁绍（？—202）。"},
+  {"id": 32, "chapter": "第二章第二节", "point": "实践是检验真理的唯一标准", "stem": "街亭之役，马谡依据“投之亡地然后存”的兵法教条主张上山扎营，结果被断汲水之道而溃败。其认识的对错最终由（　）判定。", "options": {"A": "兵书上的条文", "B": "主将诸葛亮的威望", "C": "马谡自己的信心", "D": "实践及其结果"}, "answer": "D", "analysis": "再权威的教条也不能充当检验真理的标准，只有实践及其结果才能检验认识的真理性。马谡之策在实战中被证伪，正说明实践是检验真理的唯一标准。A 属本本主义；B、C 以主观定对错。", "story": "228 年诸葛亮首出祁山，马谡守街亭，舍水上山、依阻南山，张郃断其汲水道，蜀军大败，街亭失守。见《三国志·马谡传》及《张郃传》。", "people": "马谡（190—228），字幼常，蜀汉将领；诸葛亮（181—234）。"},
+  {"id": 33, "chapter": "第二章第二节", "point": "价值的主体性", "stem": "同一块“荆州”：对刘备是立国之基，对孙权是门户屏障，对曹操则是南下跳板。三方对荆州之“利”的看法大不相同，这说明（　）。", "options": {"A": "价值是纯粹主观的，没有任何客观依据", "B": "价值是客体自身固有的属性，与人无关", "C": "价值具有主体性，同一客体对不同的主体具有不同的价值", "D": "价值不随主体需要的变化而变化"}, "answer": "C", "analysis": "价值是客体对主体需要的满足关系，主体不同、需要不同，同一客体的价值便不同，这正是价值的主体性。B 把价值说成客体固有属性；A 否定价值的客观基础；D 与事实相反。", "story": "荆州地处要冲，赤壁后为孙刘相争之地；关羽失荆州、刘备伐吴，皆由此而起。", "people": "刘备（161—223）；孙权（182—252）；曹操（155—220）。"},
+  {"id": 34, "chapter": "第二章第二节", "point": "真理尺度与价值尺度的统一", "stem": "诸葛亮坚持北伐：既力求认清蜀、魏的客观形势（求真），又怀“兴复汉室、还于旧都”的理想与对先帝的托付（求善）。这体现了（　）。", "options": {"A": "真理与价值彼此对立、无法统一", "B": "只讲真理尺度，不讲价值尺度", "C": "只讲价值尺度，不讲真理尺度", "D": "真理尺度与价值尺度的统一"}, "answer": "D", "analysis": "成功的实践既要遵循真理尺度（合规律性），又要遵循价值尺度（合目的性），二者统一于实践。诸葛亮的北伐既作形势判断，又含价值追求，正是二者的统一。B、C 各执一端；A 割裂了二者。", "story": "诸葛亮在《出师表》中自陈“奖率三军，北定中原……兴复汉室，还于旧都”，北伐既是对形势的判断，也寄托其政治理想。", "people": "诸葛亮（181—234）。"},
+  {"id": 35, "chapter": "第二章第二节", "point": "价值评价及其客观标准", "stem": "曹操曾说“宁教我负天下人，休教天下人负我”。若据此认为“只要自己觉得值得，怎样做都对”，其错误在于（　）。", "options": {"A": "夸大了价值评价的客观性", "B": "肯定了价值评价的主体性，因而是完全正确的", "C": "否定了价值评价也有客观标准，滑向价值相对主义", "D": "认为价值评价与主体需要毫无关系"}, "answer": "C", "analysis": "价值评价虽有主体性，但仍须以是否符合社会发展规律、是否符合人民根本利益为客观标准，不能“唯我”。故选 C。B 只看到主体性而丢掉客观标准；A 与题意相反；D 否认价值的主体性。", "story": "“宁教我负天下人，休教天下人负我”见《三国演义》第四回（吕伯奢事件），是小说中表现曹操性格的名句。", "people": "曹操（155—220）。"},
+  {"id": 36, "chapter": "第二章第二节", "point": "价值的含义（客体满足主体需要的意义）", "stem": "华佗行医，以“麻沸散”施行外科手术，为众多病家解除痛苦。从哲学上看，华佗医术之“有价值”，指的是（　）。", "options": {"A": "由华佗的主观愿望单方面决定的", "B": "医术本身固有、与人无关的属性", "C": "医术这一客体能够满足人们健康需要的关系", "D": "与人的需要没有任何关系的"}, "answer": "C", "analysis": "价值是客体对主体需要的意义，即客体能否满足主体需要及其满足程度，须通过主客体的关系来理解。B 割裂了主客体关系，是“价值即客体属性”的常见错误；A 把价值主观化；D 否认价值的主体性维度。", "story": "华佗为东汉末年名医，创“麻沸散”用于外科手术，又据传创“五禽戏”以导引健身，见《三国志·华佗传》。", "people": "华佗（约 145—208），字元化，东汉末医学家。"},
+  {"id": 37, "chapter": "第二章第三节", "point": "一切从实际出发、实事求是", "stem": "庞统、法正力劝刘备入川，并非凭空谋划，而是基于对益州虚实、刘璋暗弱的实地了解，刘备遂据益州而立国。这体现了（　）。", "options": {"A": "从个人好恶出发", "B": "从主观愿望出发，凭想象决策", "C": "从书本教条出发", "D": "一切从实际出发，实事求是"}, "answer": "D", "analysis": "入川之策建立在对益州实际情况的调查了解之上，正是从实际出发、实事求是。A、B、C 分别对应个人主义、主观主义与教条主义，恰是要反对的。", "story": "建安十六年（211 年）前后，法正、庞统等人为刘备谋划取益州，刘备遂入川，214 年取代刘璋，据有益州。见《三国志》相关传记。", "people": "庞统（179—214）；法正（176—220），字孝直，刘备谋士；刘璋，益州牧。"},
+  {"id": 38, "chapter": "第二章第三节", "point": "自由与必然", "stem": "魏军伐蜀时，邓艾认清蜀军疏于防范，大胆率军翻越阴平险道，直插成都，逼降刘禅。这一行动说明（　）。", "options": {"A": "自由与必然互不相容", "B": "人可以摆脱客观必然性的束缚而为所欲为", "C": "认识必然就是取消必然", "D": "自由是对必然的认识和对客观世界的改造"}, "answer": "D", "analysis": "邓艾正确认识了蜀军布防空虚这一“必然”，并据此大胆行动，才取得成功，体现了自由是对必然的认识和对客观世界的改造。B 是唯意志论；C 混淆认识与取消；A 割裂二者。", "story": "263 年，邓艾率军自阴平小道翻山越岭，出奇兵直逼成都，刘禅出降，蜀汉灭亡。见《三国志·邓艾传》。", "people": "邓艾（197—264），字士载，曹魏名将；刘禅（207—271）。"},
+  {"id": 39, "chapter": "第二章第三节", "point": "认识世界与改造世界的统一", "stem": "诸葛亮治蜀，先弄清蜀地民情、法度废弛之实（认识世界），继而修明法令、劝课农桑、兴修水利（改造世界），蜀地遂“田畴辟，仓廪实”。这表明（　）。", "options": {"A": "认识世界与改造世界是统一的，认识世界的目的是改造世界", "B": "认识世界与改造世界互不相干", "C": "只要认识了世界，就自然改造好了世界", "D": "改造世界不需要以认识世界为前提"}, "answer": "A", "analysis": "先认识蜀地实情，再据此实施治理，认识与改造相互贯通，故 A 正确。B 割裂二者；C 夸大认识、无视实践环节；D 颠倒了前提关系。", "story": "诸葛亮辅政期间厉行法治、劝农桑、修水利，蜀汉“田畴辟，仓廪实，器械利，蓄积饶”，见《三国志·诸葛亮传》及裴注。", "people": "诸葛亮（181—234）。"},
+  {"id": 40, "chapter": "第二章第三节", "point": "改造客观世界与改造主观世界的统一", "stem": "诸葛亮在治蜀、北伐的实践中砥砺自身，以“淡泊明志，宁静致远”自勉，也在实践中不断校正自己的认识与品格。这体现了（　）。", "options": {"A": "改造客观世界与改造主观世界相互促进、彼此统一", "B": "只要改造了客观世界，主观世界就无须改造", "C": "改造主观世界与改造客观世界毫无关系", "D": "改造主观世界可以脱离实践而孤立进行"}, "answer": "A", "analysis": "人在改造客观世界的同时也在改造自己的主观世界，二者相互促进、彼此统一。B 否认主观世界改造的必要；C 割裂二者；D 否认改造主观世界也需通过实践，错误。", "story": "“非淡泊无以明志，非宁静无以致远”出自诸葛亮《诫子书》；其为政一生，亦在实践中不断砥砺自身。", "people": "诸葛亮（181—234）。"}
+]
+</script>
+
+<script>
+(function(){
+  var BANK = JSON.parse(document.getElementById('bankData').textContent);
+  var stage = document.getElementById('stage');
+  var counter = document.getElementById('counter');
+  var barFill = document.getElementById('barFill');
+  var hint = document.getElementById('hint');
+
+  var idx = 0, answered = false, score = 0;
+  var TOTAL = BANK.length;
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function setProgress(){
+    counter.textContent = '第 ' + Math.min(idx + 1, TOTAL) + ' / ' + TOTAL + ' 题';
+    barFill.style.width = (idx / TOTAL * 100) + '%';
+  }
+
+  function renderQuestion(){
+    answered = false;
+    var q = BANK[idx];
+    setProgress();
+    hint.style.display = '';
+
+    var opts = '';
+    ['A','B','C','D'].forEach(function(k){
+      opts += '<li class="opt" data-k="' + k + '">' +
+                '<span class="lab">' + k + '</span>' +
+                '<span class="txt">' + esc(q.options[k]) + '</span>' +
+              '</li>';
+    });
+
+    stage.innerHTML =
+      '<section class="scroll">' +
+        '<div class="tags">' +
+          '<span class="tag">' + esc(q.chapter) + '</span>' +
+          '<span class="tag k">' + esc(q.point) + '</span>' +
+        '</div>' +
+        '<div class="stem">' + esc(q.stem) + '</div>' +
+        '<ul class="opts" id="opts">' + opts + '</ul>' +
+        '<div class="reveal" id="reveal"></div>' +
+        '<div class="foot">' +
+          '<button class="btn-main" id="next" disabled>下一题</button>' +
+        '</div>' +
+      '</section>';
+
+    document.getElementById('opts').addEventListener('click', onPick);
+    document.getElementById('next').addEventListener('click', onNext);
+  }
+
+  function onPick(e){
+    var li = e.target.closest('.opt');
+    if(!li || answered) return;
+    answered = true;
+
+    var chosen = li.getAttribute('data-k');
+    var q = BANK[idx];
+    var correct = q.answer;
+    var ok = (chosen === correct);
+    if(ok) score++;
+
+    var items = stage.querySelectorAll('.opt');
+    items.forEach(function(el){
+      el.classList.add('locked');
+      var k = el.getAttribute('data-k');
+      if(k === correct){
+        el.classList.add('ok');
+        el.querySelector('.txt').insertAdjacentHTML('beforeend',
+          '<span class="mark">✔ 正确答案</span>');
+      }
+      if(k === chosen && !ok){
+        el.classList.add('bad');
+        el.querySelector('.txt').insertAdjacentHTML('beforeend',
+          '<span class="mark">✘ 你选了这个</span>');
+      }
+    });
+
+    var reveal = document.getElementById('reveal');
+    reveal.innerHTML =
+      '<div class="verdict">' + (ok
+        ? '<span class="yes">✓ 答对了　' : '<span class="no">✗ 答错了　') +
+        '正确答案：' + correct + '</span></div>' +
+      '<div class="block"><h4><span>解析</span></h4><p>' + esc(q.analysis) + '</p></div>' +
+      '<div class="block"><h4><span>故事简介</span></h4><p>' + esc(q.story) + '</p></div>' +
+      '<div class="block"><h4><span>人物简介</span></h4><p class="muted">' + esc(q.people) + '</p></div>';
+    reveal.classList.add('show');
+
+    document.getElementById('next').disabled = false;
+    document.getElementById('next').textContent = (idx === TOTAL - 1) ? '查看成绩' : '下一题';
+    barFill.style.width = ((idx + 1) / TOTAL * 100) + '%';
+  }
+
+  function onNext(){
+    if(idx < TOTAL - 1){
+      idx++;
+      renderQuestion();
+      window.scrollTo({top:0, behavior:'smooth'});
+    } else {
+      renderResult();
+    }
+  }
+
+  function renderResult(){
+    hint.style.display = 'none';
+    counter.textContent = '已完成';
+    barFill.style.width = '100%';
+    var pct = score / TOTAL;
+    var rank, note;
+    if(pct >= 0.9){ rank = '通晓古今'; note = '马原一二章掌握得很扎实，堪称“卧龙之才”。'; }
+    else if(pct >= 0.75){ rank = '运筹帷幄'; note = '整体不错，个别知识点再巩固一下就更稳了。'; }
+    else if(pct >= 0.6){ rank = '渐入佳境'; note = '基础尚可，建议对照教材回看错题涉及的知识点。'; }
+    else { rank = '尚需用功'; note = '别急，把第一、二章的框架理一遍，再来一轮会好很多。'; }
+
+    stage.innerHTML =
+      '<section class="scroll"><div class="result">' +
+        '<div class="score">' + score + '<small> / ' + TOTAL + '</small></div>' +
+        '<div class="rank">' + rank + '</div>' +
+        '<p class="note">' + note + '</p>' +
+        '<div class="foot"><button class="btn-main" id="again">再来一轮</button></div>' +
+      '</div></section>';
+    document.getElementById('again').addEventListener('click', function(){
+      idx = 0; score = 0; answered = false;
+      renderQuestion();
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  }
+
+  renderQuestion();
+})();
+</script>
+</body>
+</html>
